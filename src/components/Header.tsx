@@ -9,7 +9,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onRefresh, isRefreshing, lastUpdated }) => {
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
+    <header className="bg-blue-50 shadow-sm border border-blue-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-6">
           <div className="flex items-center">
@@ -17,7 +17,7 @@ const Header: React.FC<HeaderProps> = ({ onRefresh, isRefreshing, lastUpdated })
               <Activity className="h-8 w-8 text-blue-600" />
               <div className="ml-4">
                 <h1 className="text-2xl font-bold text-gray-900">
-                  Sensor Monitoring Dashboard
+                  TSS Sensor Monitoring Dashboard
                 </h1>
                 <p className="text-sm text-gray-600">
                   Paper/Pulp Plant Deployments
