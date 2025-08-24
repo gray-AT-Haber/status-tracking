@@ -19,7 +19,7 @@ export const useSensorData = (autoRefreshInterval: number = 300000): UseSensorDa
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [isConnected, setIsConnected] = useState(false);
 
-  // ✅ FIX: Create service once with useMemo to prevent recreation
+
   const googleSheetsService = useMemo(() => createGoogleSheetsService(), []);
 
   const fetchData = useCallback(async () => {
@@ -48,30 +48,28 @@ export const useSensorData = (autoRefreshInterval: number = 300000): UseSensorDa
       setError(errorMessage);
       setIsConnected(false);
       
-      // Fallback to sample data on error
       setSensorData(sampleSensorData);
       
       console.error('Google Sheets fetch error:', err);
     } finally {
       setIsLoading(false);
     }
-  }, [googleSheetsService]); // ✅ Now googleSheetsService is stable
+  }, [googleSheetsService]);
 
   const refresh = useCallback(async () => {
     await fetchData();
   }, [fetchData]);
 
-  // ✅ FIX: Single useEffect for both initial load and auto-refresh
+  
   useEffect(() => {
     let mounted = true;
     let intervalId: NodeJS.Timeout | null = null;
 
-    // Initial fetch
+
     const initialFetch = async () => {
       if (!mounted) return;
       await fetchData();
       
-      // Set up auto-refresh only after initial load
       if (mounted && autoRefreshInterval > 0) {
         intervalId = setInterval(() => {
           if (mounted) fetchData();
@@ -87,8 +85,7 @@ export const useSensorData = (autoRefreshInterval: number = 300000): UseSensorDa
     };
   }, [fetchData, autoRefreshInterval]);
 
-  // ✅ FIX: Remove separate testConnection - it's redundant
-  // Connection status is already handled by fetchData
+
 
   return {
     sensorData,
