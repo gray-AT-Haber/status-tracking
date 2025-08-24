@@ -26,7 +26,7 @@ const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
     return (
       <div className="flex items-center space-x-2 text-green-600">
         <CheckCircle className="w-4 h-4" />
-        <span className="text-sm font-medium">Google Sheets Connected</span>
+        <span className="text-sm font-medium">Deployment-status Sheet Connected</span>
         <span className="text-xs text-gray-500">
           Updated: {lastUpdated.toLocaleTimeString()}
         </span>
