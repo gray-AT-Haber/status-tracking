@@ -94,7 +94,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, onRowSelect, onExport }) =>
       <div className="p-6 border-b border-gray-100">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between space-y-4 lg:space-y-0">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Sensor Deployment Status</h2>
+            <h2 className="text-xl font-bold text-gray-900">Haber TSS sensor Deployment Status</h2>
             <p className="text-sm text-gray-600 mt-1">
               {filteredAndSortedData.length} sensors • Last updated: {new Date().toLocaleTimeString()}
             </p>
