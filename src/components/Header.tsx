@@ -50,6 +50,9 @@ const Header: React.FC<HeaderProps> = ({ onRefresh, isRefreshing, lastUpdated })
     </div>
   </div>
 </header>
+);
+};
+
 
 
 export default Header;
