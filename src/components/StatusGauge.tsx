@@ -16,8 +16,8 @@ const StatusGauge: React.FC<StatusGaugeProps> = ({ stats }) => {
   return (
     <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">System Status Overview</h2>
-        <p className="text-gray-600">Real-time sensor deployment monitoring</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Deployment Status Overview</h2>
+        <p className="text-gray-600">Real-time TSS sensor deployment monitoring</p>
       </div>
       
       <div className="flex flex-col lg:flex-row items-center justify-center space-y-8 lg:space-y-0 lg:space-x-12">
