@@ -7,7 +7,7 @@ interface DataTableProps {
   data: SensorData[];
   onRowSelect: (sensor: SensorData) => void;
   onExport: () => void;
-  isDark: boolean; // <-- Add this
+  isDark: boolean;
 }
 
 const DataTable: React.FC<DataTableProps> = ({ data, onRowSelect, onExport, isDark }) => {
@@ -17,24 +17,26 @@ const DataTable: React.FC<DataTableProps> = ({ data, onRowSelect, onExport, isDa
     status: '',
     customer: '',
     unit: '',
-    parameter: ''
+    parameter: '',
   });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  // Extract unique values for filters
   const uniqueValues = useMemo(() => ({
     customers: [...new Set(data.map(item => item.customerName))].filter(Boolean).sort(),
     units: [...new Set(data.map(item => item.unit))].filter(Boolean).sort(),
     parameters: [...new Set(data.map(item => item.parameter))].filter(Boolean).sort(),
   }), [data]);
 
+  // Filter and sort data
   const filteredAndSortedData = useMemo(() => {
     let filtered = data.filter(sensor => {
       const matchesSearch = Object.values(sensor).some(value =>
-        value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+        value?.toString().toLowerCase().includes(searchTerm.toLowerCase())
       );
-      
-      const matchesFilters = 
+
+      const matchesFilters =
         (!filters.status || sensor.status === filters.status) &&
         (!filters.customer || sensor.customerName === filters.customer) &&
         (!filters.unit || sensor.unit === filters.unit) &&
@@ -43,20 +45,16 @@ const DataTable: React.FC<DataTableProps> = ({ data, onRowSelect, onExport, isDa
       return matchesSearch && matchesFilters;
     });
 
-    // Sort data
-    filtered.sort((a, b) => {
+    return filtered.sort((a, b) => {
       const aValue = a[sortConfig.key];
       const bValue = b[sortConfig.key];
-      
       if (aValue === bValue) return 0;
-      
       const comparison = aValue < bValue ? -1 : 1;
       return sortConfig.direction === 'asc' ? comparison : -comparison;
     });
-
-    return filtered;
   }, [data, searchTerm, sortConfig, filters]);
 
+  // Pagination
   const paginatedData = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return filteredAndSortedData.slice(startIndex, startIndex + itemsPerPage);
@@ -64,10 +62,11 @@ const DataTable: React.FC<DataTableProps> = ({ data, onRowSelect, onExport, isDa
 
   const totalPages = Math.ceil(filteredAndSortedData.length / itemsPerPage);
 
+  // Handlers
   const handleSort = (key: keyof SensorData) => {
-    setSortConfig(current => ({
+    setSortConfig(prev => ({
       key,
-      direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc'
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
     }));
   };
 
@@ -82,32 +81,42 @@ const DataTable: React.FC<DataTableProps> = ({ data, onRowSelect, onExport, isDa
     setCurrentPage(1);
   };
 
+  // Sort Icon Component
   const SortIcon = ({ column }: { column: keyof SensorData }) => {
     if (sortConfig.key !== column) {
-      return <ChevronUp className="w-4 h-4 text-gray-400" />;
+      return <ChevronUp className={`w-4 h-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />;
     }
-    return sortConfig.direction === 'asc' 
-      ? <ChevronUp className="w-4 h-4 text-blue-400" />
-      : <ChevronDown className="w-4 h-4 text-blue-400" />;
+    return sortConfig.direction === 'asc' ? (
+      <ChevronUp className="w-4 h-4 text-blue-400" />
+    ) : (
+      <ChevronDown className="w-4 h-4 text-blue-400" />
+    );
   };
 
   return (
-    <div className={`rounded-xl shadow-sm border transition-colors duration-200 ${
-      isDark 
-        ? 'bg-gray-800 border-gray-700' 
-        : 'bg-white border-gray-100'
-    }`}>
+    <div
+      className={`rounded-xl shadow-sm border transition-colors duration-200 ${
+        isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
+      }`}
+    >
       {/* Header */}
-      <div className={`p-6 border-b transition-colors duration-200 ${
-        isDark ? 'border-gray-700' : 'border-gray-100'
-      }`}>
+      <div
+        className={`p-6 border-b transition-colors duration-200 ${
+          isDark ? 'border-gray-700' : 'border-gray-100'
+        }`}
+      >
         <div className="flex flex-col lg:flex-row lg:items-center justify-between space-y-4 lg:space-y-0">
           <div>
-            <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            <h2
+              className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}
+            >
               Sensor Deployment Status
             </h2>
-            <p className={`text-sm mt-1 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-              {filteredAndSortedData.length} sensors • Last updated: {new Date().toLocaleTimeString()}
+            <p
+              className={`text-sm mt-1 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}
+            >
+              {filteredAndSortedData.length} sensors • Last updated:{' '}
+              {new Date().toLocaleTimeString()}
             </p>
           </div>
           <button
@@ -119,31 +128,37 @@ const DataTable: React.FC<DataTableProps> = ({ data, onRowSelect, onExport, isDa
           </button>
         </div>
 
-        {/* Search and Filters */}
+        {/* Search & Filters */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+          {/* Search */}
           <div className="lg:col-span-2">
             <div className="relative">
-              <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${isDark ? 'text-gray-400' : 'text-gray-400'} w-4 h-4`} />
+              <Search
+                className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
+                  isDark ? 'text-gray-400' : 'text-gray-400'
+                }`}
+              />
               <input
                 type="text"
                 placeholder="Search all fields..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className={`w-full pl-10 pr-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
+                onChange={e => setSearchTerm(e.target.value)}
+                className={`w-full pl-10 pr-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-colors ${
                   isDark
-                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500'
-                    : 'bg-white border border-gray-300 text-gray-900 focus:border-blue-500'
+                    ? 'bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:border-blue-500'
+                    : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:border-blue-500'
                 }`}
               />
             </div>
           </div>
 
+          {/* Status Filter */}
           <select
             value={filters.status}
-            onChange={(e) => handleFilterChange('status', e.target.value)}
-            className={`px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
+            onChange={e => handleFilterChange('status', e.target.value)}
+            className={`px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${
               isDark
-                ? 'bg-gray-700 border-gray-600 text-white'
+                ? 'bg-gray-700 border border-gray-600 text-white'
                 : 'border border-gray-300 text-gray-900'
             }`}
           >
@@ -153,36 +168,43 @@ const DataTable: React.FC<DataTableProps> = ({ data, onRowSelect, onExport, isDa
             <option value="NA">Not Deployed</option>
           </select>
 
+          {/* Customer Filter */}
           <select
             value={filters.customer}
-            onChange={(e) => handleFilterChange('customer', e.target.value)}
-            className={`px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
+            onChange={e => handleFilterChange('customer', e.target.value)}
+            className={`px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${
               isDark
-                ? 'bg-gray-700 border-gray-600 text-white'
+                ? 'bg-gray-700 border border-gray-600 text-white'
                 : 'border border-gray-300 text-gray-900'
             }`}
           >
             <option value="">All Customers</option>
             {uniqueValues.customers.map(customer => (
-              <option key={customer} value={customer}>{customer}</option>
+              <option key={customer} value={customer}>
+                {customer}
+              </option>
             ))}
           </select>
 
+          {/* Unit Filter */}
           <select
             value={filters.unit}
-            onChange={(e) => handleFilterChange('unit', e.target.value)}
-            className={`px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
+            onChange={e => handleFilterChange('unit', e.target.value)}
+            className={`px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${
               isDark
-                ? 'bg-gray-700 border-gray-600 text-white'
+                ? 'bg-gray-700 border border-gray-600 text-white'
                 : 'border border-gray-300 text-gray-900'
             }`}
           >
             <option value="">All Units</option>
             {uniqueValues.units.map(unit => (
-              <option key={unit} value={unit}>{unit}</option>
+              <option key={unit} value={unit}>
+                {unit}
+              </option>
             ))}
           </select>
 
+          {/* Clear Filters */}
           <button
             onClick={clearFilters}
             className={`px-4 py-2 rounded-lg transition-colors ${
@@ -199,14 +221,18 @@ const DataTable: React.FC<DataTableProps> = ({ data, onRowSelect, onExport, isDa
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className={`border-b transition-colors ${
-            isDark ? 'border-gray-700 bg-gray-750' : 'border-gray-200 bg-gray-50'
-          }`}>
+          <thead
+            className={`border-b ${
+              isDark ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-gray-50'
+            }`}
+          >
             <tr>
               <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
                 <button
                   onClick={() => handleSort('customerName')}
-                  className={`flex items-center space-x-1 ${isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}
+                  className={`flex items-center space-x-1 ${
+                    isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'
+                  }`}
                 >
                   <span>Customer</span>
                   <SortIcon column="customerName" />
@@ -215,7 +241,9 @@ const DataTable: React.FC<DataTableProps> = ({ data, onRowSelect, onExport, isDa
               <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
                 <button
                   onClick={() => handleSort('sensorAssigned')}
-                  className={`flex items-center space-x-1 ${isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}
+                  className={`flex items-center space-x-1 ${
+                    isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'
+                  }`}
                 >
                   <span>Sensor</span>
                   <SortIcon column="sensorAssigned" />
@@ -224,7 +252,9 @@ const DataTable: React.FC<DataTableProps> = ({ data, onRowSelect, onExport, isDa
               <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
                 <button
                   onClick={() => handleSort('status')}
-                  className={`flex items-center space-x-1 ${isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}
+                  className={`flex items-center space-x-1 ${
+                    isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'
+                  }`}
                 >
                   <span>Status</span>
                   <SortIcon column="status" />
@@ -233,7 +263,9 @@ const DataTable: React.FC<DataTableProps> = ({ data, onRowSelect, onExport, isDa
               <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
                 <button
                   onClick={() => handleSort('unit')}
-                  className={`flex items-center space-x-1 ${isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}
+                  className={`flex items-center space-x-1 ${
+                    isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'
+                  }`}
                 >
                   <span>Unit</span>
                   <SortIcon column="unit" />
@@ -242,40 +274,58 @@ const DataTable: React.FC<DataTableProps> = ({ data, onRowSelect, onExport, isDa
               <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
                 <button
                   onClick={() => handleSort('parameter')}
-                  className={`flex items-center space-x-1 ${isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}
+                  className={`flex items-center space-x-1 ${
+                    isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'
+                  }`}
                 >
                   <span>Parameter</span>
                   <SortIcon column="parameter" />
                 </button>
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
-                <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>Latest Updates</span>
+                <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>
+                  Latest Updates
+                </span>
               </th>
               <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider">
-                <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>Actions</span>
+                <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>
+                  Actions
+                </span>
               </th>
             </tr>
           </thead>
           <tbody className={isDark ? 'divide-y divide-gray-700' : 'divide-y divide-gray-200'}>
-            {paginatedData.map((sensor) => (
+            {paginatedData.map(sensor => (
               <tr
                 key={sensor.id}
                 className={`${
-                  isDark 
-                    ? getStatusRowColor(sensor.status, true) // Pass isDark to row color
+                  isDark
+                    ? getStatusRowColor(sensor.status, true)
                     : getStatusRowColor(sensor.status, false)
-                } transition-colors cursor-pointer hover:bg-opacity-80`}
+                } transition-colors cursor-pointer hover:bg-opacity-80 ${
+                  isDark ? 'hover:bg-gray-700/50' : 'hover:bg-gray-50'
+                }`}
                 onClick={() => onRowSelect(sensor)}
               >
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{sensor.customerName}</div>
-                  <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{sensor.deploymentDate}</div>
+                  <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {sensor.customerName}
+                  </div>
+                  <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {sensor.deploymentDate}
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{sensor.sensorAssigned}</div>
+                  <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {sensor.sensorAssigned}
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(sensor.status, isDark)}`}>
+                  <span
+                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      getStatusColor(sensor.status, isDark)
+                    }`}
+                  >
                     {sensor.status}
                   </span>
                 </td>
@@ -286,17 +336,21 @@ const DataTable: React.FC<DataTableProps> = ({ data, onRowSelect, onExport, isDa
                   {sensor.parameter}
                 </td>
                 <td className="px-6 py-4">
-                  <div className={`text-sm max-w-xs ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                  <div
+                    className={`text-sm max-w-xs ${isDark ? 'text-gray-300' : 'text-gray-600'}`}
+                  >
                     {formatUpdateText(sensor.latestUpdates)}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-center">
                   <button
-                    onClick={(e) => {
+                    onClick={e => {
                       e.stopPropagation();
                       onRowSelect(sensor);
                     }}
-                    className={isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'}
+                    className={`${
+                      isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'
+                    } transition-colors`}
                   >
                     <Eye className="w-4 h-4" />
                   </button>
@@ -309,20 +363,24 @@ const DataTable: React.FC<DataTableProps> = ({ data, onRowSelect, onExport, isDa
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className={`px-6 py-4 border-t transition-colors ${
-          isDark ? 'border-gray-700' : 'border-gray-100'
-        } flex items-center justify-between`}>
-          <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-            Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredAndSortedData.length)} of {filteredAndSortedData.length} results
+        <div
+          className={`px-6 py-4 border-t flex items-center justify-between ${
+            isDark ? 'border-gray-700 text-gray-300' : 'border-gray-100 text-gray-600'
+          }`}
+        >
+          <div className="text-sm">
+            Showing {((currentPage - 1) * itemsPerPage) + 1} to{' '}
+            {Math.min(currentPage * itemsPerPage, filteredAndSortedData.length)} of{' '}
+            {filteredAndSortedData.length} results
           </div>
           <div className="flex space-x-1">
             <button
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className={`px-3 py-1 text-sm rounded ${
+              className={`px-3 py-1 text-sm rounded border ${
                 isDark
-                  ? 'border border-gray-600 disabled:opacity-50 hover:bg-gray-700'
-                  : 'border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'
+                  ? 'border-gray-600 disabled:opacity-50 hover:bg-gray-700'
+                  : 'border-gray-300 hover:bg-gray-50 disabled:opacity-50'
               }`}
             >
               Previous
@@ -335,8 +393,8 @@ const DataTable: React.FC<DataTableProps> = ({ data, onRowSelect, onExport, isDa
                   currentPage === page
                     ? 'bg-blue-600 text-white border-blue-600'
                     : isDark
-                      ? 'border border-gray-600 text-gray-300 hover:bg-gray-700'
-                      : 'border border-gray-300 hover:bg-gray-50'
+                    ? 'border border-gray-600 text-gray-300 hover:bg-gray-700'
+                    : 'border border-gray-300 hover:bg-gray-50'
                 }`}
               >
                 {page}
@@ -345,10 +403,10 @@ const DataTable: React.FC<DataTableProps> = ({ data, onRowSelect, onExport, isDa
             <button
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
-              className={`px-3 py-1 text-sm rounded ${
+              className={`px-3 py-1 text-sm rounded border ${
                 isDark
-                  ? 'border border-gray-600 disabled:opacity-50 hover:bg-gray-700'
-                  : 'border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'
+                  ? 'border-gray-600 disabled:opacity-50 hover:bg-gray-700'
+                  : 'border-gray-300 hover:bg-gray-50 disabled:opacity-50'
               }`}
             >
               Next
