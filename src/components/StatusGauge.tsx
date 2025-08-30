@@ -129,7 +129,7 @@ const StatusGauge: React.FC<StatusGaugeProps> = ({ stats, isDark = false }) => {
                 Action Required
               </h3>
               <p className={`text-sm mt-1 ${isDark ? 'text-orange-100' : 'text-orange-700'}`}>
-                {stats.trouble} sensors{stats.trouble > 1 ? 's' : ''} are in trouble. Please review and resolve.
+                {stats.trouble} sensor{stats.trouble > 1 ? 's' : ''} are in trouble. Please review and resolve.
               </p>
             </div>
           </div>
